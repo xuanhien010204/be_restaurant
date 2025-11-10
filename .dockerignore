@@ -1,0 +1,10 @@
+bin/
+obj/
+**/.vscode/
+**/*.user
+**/*.suo
+**/*.git
+**/*.gitignore
+**/render.yaml
+**/Dockerfile.dev
+**/*.md

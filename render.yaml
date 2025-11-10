@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: restaurant-management-api
-    env: dotnet
-    branch: main
-    buildCommand: dotnet restore && dotnet publish RestaurantManagement.Api/RestaurantManagement.Api.csproj -c Release -o RestaurantManagement.Api/publish
-    startCommand: dotnet RestaurantManagement.Api/publish/RestaurantManagement.Api.dll --urls "http://0.0.0.0:$PORT"
-    autoDeploy: true

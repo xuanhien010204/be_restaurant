@@ -27,7 +27,7 @@ builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-         policy.WithOrigins("http://localhost:5173")
+         policy.WithOrigins("http://localhost:5173", "https://fe-restaurant-management-peach.vercel.app")
                .AllowAnyMethod()
                .AllowAnyHeader()
                .AllowCredentials()); //
@@ -144,6 +144,10 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+// Read runtime flags
+var enableSwagger = builder.Configuration.GetValue<bool>("ENABLE_SWAGGER", false);
+
 var adminConfig = builder.Configuration.GetSection("AdminAccount");
 var adminEmail = adminConfig["Email"] ?? throw new InvalidOperationException("Admin email configuration is missing.");
 var adminPassword = adminConfig["Password"] ?? throw new InvalidOperationException("Admin password configuration is missing.");
@@ -167,8 +171,9 @@ using (var scope = app.Services.CreateScope())
         db.SaveChanges();
     }
 }
-// Developer exception page
-if (app.Environment.IsDevelopment())
+
+// Enable swagger only in Development or when ENABLE_SWAGGER=true
+if (app.Environment.IsDevelopment() || enableSwagger)
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
@@ -179,8 +184,24 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// Only use HTTPS redirection in Development
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+// Health and root endpoints
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/", () =>
+{
+    if (app.Environment.IsDevelopment() || enableSwagger)
+    {
+        return Results.Redirect("/swagger");
+    }
+    return Results.Text("Restaurant Management API");
+});
+
 // Middleware
-app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
